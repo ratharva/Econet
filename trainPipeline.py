@@ -16,11 +16,12 @@ from sklearn.linear_model import LogisticRegression
 import xgboost as xgb
 from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.model_selection import cross_validate
+import pickle
 
 class trainPipeline():
 
     def __init__(self, myPath):
-        self.myFileList = glob.glob(myPath)
+        self.myFileList = glob.glob(myPath + "*.csv")
 
     # def scaleData(self, dataFrame):
     #     myDf = dataFrame
@@ -30,7 +31,7 @@ class trainPipeline():
     #     myScaledData = myScaler.fit_transform(myDfX)
     #     return myScaledData
     
-    def machineLearningModels(modelName):
+    def machineLearningModels(self, modelName):
         if modelName == "randomForest":
             randomForestModel = RandomForestClassifier(random_state=42)
             return randomForestModel
@@ -51,12 +52,14 @@ class trainPipeline():
     
     def trainPipeLine(self):
         
-        for i in range(self.myFileList):
-            myFileName = os.path.basename(self.myFileList)
-            readDf = pd.read_csv(self.myFileList[i])
+        for i in range(len(self.myFileList)):
+            myFileName = os.path.basename(self.myFileList[i])
+            myFileName = os.path.splitext(myFileName)[0]
+            readDf = pd.read_csv(self.myFileList[i], index_col=["Ob", "Station"])
+            readDf = readDf.drop(columns=["Unnamed: 0", "Unnamed: 0.1"])
             readX = readDf.drop(columns=["target"], axis = 1)
             readY = readDf["target"]
-            XTrain, XVal, yTrain, yVal = train_test_split(readX, readY, stratify = readY, test_size=0.3)
+            XTrain, XVal, yTrain, yVal = train_test_split(readX, readY, stratify = readY, test_size=0.3, random_state=42)
             myModel1 = self.machineLearningModels("randomForest")
             myFit1 = myModel1.fit(XTrain, yTrain)
             myPredict1 = myModel1.predict(XVal)
@@ -73,16 +76,21 @@ class trainPipeline():
             myF12 = f1_score(yVal, myPredict2)
 
             if myAccuracy1 >= myAccuracy2 and myF11 >= myF12:
-                pickle.dump(myModel1, open("/models/" + myFileName + ".sav"))
+                pickle.dump(myModel1, file=open(myFileName + ".sav",'wb'))
             
             elif myAccuracy1 <= myAccuracy2 and myF11 <= myF12:
-                pickle.dump(myModel2, open("/models/" + myFileName + ".sav"))
+                pickle.dump(myModel2, file = open(myFileName + ".sav",'wb'))
             
             elif myF11 >= myF12:
-                pickle.dump(myModel1, open("/models/" + myFileName + ".sav"))
+                pickle.dump(myModel1, file = open(myFileName + ".sav",'wb'))
             
             elif myF11 <= myF12:
-                pickle.dump(myModel2, open("/models/" + myFileName + ".sav"))
+                pickle.dump(myModel2, file = open(myFileName + ".sav",'wb'))
+
+
+if __name__ == "__main__":
+    myTrainObj = trainPipeline("/home/atharva/Atharva/NCSU/Sem2/ALDA/project/EcoNet1/Econet/data/splitData/seasonSplitData/")
+    myTrainObj.trainPipeLine()
 
 
             
