@@ -31,7 +31,7 @@ class trainPipeline():
             return randomForestModel
         
         elif modelName == "xgBoost":
-            XGBoostModel = xgb.XGBClassifier()
+            XGBoostModel = xgb.XGBClassifier(n_jobs = 16)
             return XGBoostModel
     
         elif modelName == "knnClassifier":
@@ -40,8 +40,10 @@ class trainPipeline():
    
 
     def trainPipeLine(self):
-        
+        # print("Entered train pipeline")
+        print(self.myFileList)
         for i in range(len(self.myFileList)):
+            # print("entered for loop")
             myFileName = os.path.basename(self.myFileList[i])
             myFileName = os.path.splitext(myFileName)[0]
             readDf = pd.read_csv(self.myFileList[i], index_col=["Ob", "Station"])
@@ -72,6 +74,10 @@ class trainPipeline():
             
             modelCompDict = dict(sorted(modelCompDict.items(), key=lambda item:item[1][0], reverse=True))
             print("For file ", myFileName, " the best model is ", modelCompDict)
+            myPickledFileName = myFileName + type(list(modelCompDict.keys())[0]).__name__ + ".sav"
+            print(myPickledFileName)
+            pickle.dump(list(modelCompDict.keys())[0], file=open(myPickledFileName,'wb'))
+
             # myAccuracy1 = accuracy_score(yVal, myPredict1)
             # myF11 = f1_score(yVal, myPredict1)
 
@@ -88,5 +94,5 @@ class trainPipeline():
             #     pickle.dump(myModel2, file = open(myFileName + ".sav",'wb'))
 
 if __name__ == "__main__":
-    myTrainObj = trainPipeline("/home/atharva/Atharva/NCSU/Sem2/ALDA/project/EcoNet1/Econet/data/splitData/seasonSplitData/")
+    myTrainObj = trainPipeline("C:/Users/ayrisbud/Downloads/aldaPipeline/Econet/splitSeasonData/")
     myTrainObj.trainPipeLine()
