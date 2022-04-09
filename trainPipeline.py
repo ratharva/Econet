@@ -65,6 +65,7 @@ class trainPipeline():
             readY = readDf["target"]
             XTrain, XVal, yTrain, yVal = train_test_split(readX, readY, stratify = readY, test_size=0.3, random_state=42)
 
+
             modelCompDict = {}
             modelList = ["randomForest", "xgBoost"]
             for i in range(0, len(modelList)):
@@ -89,18 +90,6 @@ class trainPipeline():
             # myAccuracy1 = accuracy_score(yVal, myPredict1)
             # myF11 = f1_score(yVal, myPredict1)
 
-
-            # myModel2 = self.machineLearningModels("xgBoost")
-            # myFit2 = myModel2.fit(XTrain, yTrain)
-            # myPredict2 = myModel2.predict(XVal)
-
-            # myModel3 = self.machineLearningModels("xgBoost")
-            # myFit2 = myModel2.fit(XTrain, yTrain)
-            # myPredict2 = myModel2.predict(XVal)
-
-            # myAccuracy2 = accuracy_score(yVal, myPredict2)
-            # myF12 = f1_score(yVal, myPredict2)
-
             # if myAccuracy1 >= myAccuracy2 and myF11 >= myF12:
             #     pickle.dump(myModel1, file=open(myFileName + ".sav",'wb'))
             
@@ -113,20 +102,6 @@ class trainPipeline():
             # elif myF11 <= myF12:
             #     pickle.dump(myModel2, file = open(myFileName + ".sav",'wb'))
 
-
 if __name__ == "__main__":
-    myTrainObj = trainPipeline("C:/Users/ayrisbud/Downloads/aldaPipeline/Econet/splitSeasonData/")
+    myTrainObj = trainPipeline("/home/atharva/Atharva/NCSU/Sem2/ALDA/project/EcoNet1/Econet/data/splitData/seasonSplitData/")
     myTrainObj.trainPipeLine()
-
-
-            
-
-
-
-            
-
-
-
-    
-    
-    
