@@ -8,7 +8,7 @@ import glob
 import os
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, f1_score, precision_score, recall_score
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, f1_score, precision_score, recall_score, fbeta_score
 from imblearn.over_sampling import SMOTE 
 from imblearn.under_sampling import TomekLinks 
 from sklearn.model_selection import GridSearchCV
@@ -18,18 +18,21 @@ import xgboost as xgb
 from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.model_selection import cross_validate
 import pickle
+from imblearn.combine import SMOTEENN, SMOTETomek
 
 class trainPipeline():
 
     def __init__(self, myPath):
-        self.myFileList = glob.glob(myPath + "fall1.csv")
+        self.myFileList = glob.glob(myPath + "*.csv")
 
     def resampleTrainingData(self, xTrain, yTrain):
-        print("Before tomek links")
+        print("Before resampling")
         print(yTrain.value_counts())
-        tl = TomekLinks(n_jobs=16)
+        tl = TomekLinks(n_jobs=-1)
         xTrain, yTrain = tl.fit_resample(xTrain, yTrain)
-        print("After tomek links")
+        # t2 = SMOTETomek(n_jobs=-1)
+        # xTrain, yTrain = t2.fit_resample(xTrain, yTrain)
+        print("After resampling")
         print(yTrain.value_counts())
         return xTrain, yTrain
 
@@ -52,8 +55,8 @@ class trainPipeline():
         for i in range(len(self.myFileList)):
             myFileName = os.path.basename(self.myFileList[i])
             myFileName = os.path.splitext(myFileName)[0]
-            readDf = pd.read_csv(self.myFileList[i], index_col=["Ob", "Station"])
-            # readDf = readDf.drop(columns=["Unnamed: 0", "Unnamed: 0.1"])
+            readDf = pd.read_csv(self.myFileList[i]) #, index_col=["Station"]
+            readDf = readDf.drop(columns=["Unnamed: 0.2", "Station"])
             readX = readDf.drop(columns=["target"], axis = 1)
             readY = readDf["target"]
             XTrain, XVal, yTrain, yVal = train_test_split(readX, readY, stratify = readY, test_size=0.3, random_state=42)
@@ -74,8 +77,13 @@ class trainPipeline():
                 myAccuracy = accuracy_score(yVal, myPredict)
                 myPrecision = precision_score(yVal, myPredict)
                 myRecall = recall_score(yVal, myPredict)
+                myf2Score = fbeta_score(yVal, myPredict, average='macro', beta=0.5)
+                myConfMatrix = confusion_matrix(yVal, myPredict)
+                myClassMat = classification_report(yVal, myPredict)
 
-                modelCompDict[myModel] = [myF1, myAccuracy, myPrecision, myRecall]
+                modelCompDict[myModel] = [myF1, myAccuracy, myPrecision, myRecall, myf2Score, myConfMatrix, myClassMat]
+                print(myConfMatrix)
+                print(myClassMat)
                 print("**************************************************************************************")
 
             
@@ -97,5 +105,5 @@ class trainPipeline():
             #     pickle.dump(myModel2, file = open(myFileName + ".sav",'wb'))
 
 if __name__ == "__main__":
-    myTrainObj = trainPipeline("/Users/vignesh/Desktop/Projects/Econet/splitSeasonData/")
+    myTrainObj = trainPipeline("C:/Users/ayrisbud/Downloads/aldaPipeline/Econet/splitDataMod/")
     myTrainObj.trainPipeLine()
