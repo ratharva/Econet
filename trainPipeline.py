@@ -81,14 +81,18 @@ class trainPipeline():
                 myConfMatrix = confusion_matrix(yVal, myPredict)
                 myClassMat = classification_report(yVal, myPredict)
 
-                modelCompDict[myModel] = [myF1, myAccuracy, myPrecision, myRecall, myf2Score, myConfMatrix, myClassMat]
+                modelCompDict[myModel] = [myF1, myAccuracy, myPrecision, myRecall, myf2Score]
                 print(myConfMatrix)
                 print(myClassMat)
-                print("**************************************************************************************")
-
-            
+               
+            print("**************************************************************************************")
             modelCompDict = dict(sorted(modelCompDict.items(), key=lambda item:item[1][0], reverse=True))
             print("For file ", myFileName, " the best model is ", modelCompDict)
+
+            modelList = list(modelCompDict.keys())
+            bestModel = modelList[0]
+            pickle.dump(bestModel, file=open(myFileName + ".sav",'wb'))
+            
             # myAccuracy1 = accuracy_score(yVal, myPredict1)
             # myF11 = f1_score(yVal, myPredict1)
 
@@ -105,5 +109,5 @@ class trainPipeline():
             #     pickle.dump(myModel2, file = open(myFileName + ".sav",'wb'))
 
 if __name__ == "__main__":
-    myTrainObj = trainPipeline("C:/Users/ayrisbud/Downloads/aldaPipeline/Econet/splitDataMod/")
+    myTrainObj = trainPipeline("C:/Users/sdharma2/Desktop/Econet/splitDataMod/")
     myTrainObj.trainPipeLine()
