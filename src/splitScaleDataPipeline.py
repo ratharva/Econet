@@ -73,7 +73,7 @@ class splitScaleData():
         return encodedDataX
         
 
-myObj = splitScaleData("C:/Users/ayrisbud/Downloads/aldaPipeline/Econet/train.csv")
+myObj = splitScaleData('train.csv')
 
 myReadDf = myObj.readTrain()
 
