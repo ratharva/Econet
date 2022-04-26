@@ -54,19 +54,8 @@ class TestPipeLine():
                 self.fall2Model = model
             elif "winter" in modelPath:
                 self.winterModel = model
-        
-    # Function not used    
-    # def myDummyOHE(self):
-    #     myTestDfX = pd.read_csv(self.testFilePath)
-    #     myTestDfX["Ob"] = pd.to_datetime(myTestDfX["Ob"], infer_datetime_format=True).dt.time
-    #     dummyDf = pd.get_dummies(myTestDfX.measure, prefix='measure')
-    #     print("Shape of dummyDf: ", dummyDf.shape)
-    #     print("dummyDf columns: ", dummyDf.columns)
-    #     encodedData = pd.concat([myTestDfX[["Station", "Ob", "value", "R_flag", "I_flag", "Z_flag", 'B_flag']], dummyDf], axis = 1)
-    #     # encodedData = encodedData.set_index("Ob")
-    #     return encodedData
 
-    # Function not used
+
     def splitTestDf(self, myTestDfX):
 
         springStart = datetime.datetime(2021, 3, 1)
@@ -103,9 +92,9 @@ class TestPipeLine():
         return springDf, summer1Df, summer2Df, fall1Df, fall2Df, winterDf
     
 
-    # Function not used
     def predictClasses(self, dataFrame):
         springDf, summer1Df, summer2Df, fall1Df, fall2Df, winterDf = self.splitTestDf(dataFrame)
+        # return
 
         # Drop OB and station
         springDf = springDf.drop(["Ob", "Station"], axis = 1)
@@ -128,15 +117,16 @@ class TestPipeLine():
         fall2Predict = self.fall2Model.predict_proba(fall2Df)
         fall2PredictDf = pd.DataFrame(fall2Predict[:,1], index=fall2Df.index)
 
+        winterDf = winterDf.drop(["Ob", "Station"], axis = 1)
         winterPredict = self.winterModel.predict_proba(winterDf)
         winterPredictDf = pd.DataFrame(winterPredict[:,1], index=winterDf.index)
 
-        concatenatedDf = springPredictDf.concat([summer1PredictDf, summer2PredictDf, fall1PredictDf, fall2PredictDf, winterPredictDf], axis = 0)
-
+        concatenatedDf = pd.concat([summer1PredictDf, summer2PredictDf, fall1PredictDf, fall2PredictDf, winterPredictDf, springPredictDf], axis = 0)
+        concatenatedDf = concatenatedDf.sort_index(ascending=True)
         # concatenatedDf.to_csv("predictedValues.csv")
-        # print(springDf.head())
+        print(concatenatedDf.head())
         # print(summerDf.head())
-        # print(fallDf.head())
+        # print(fallDf.head())pyt
         # print(winterDf.head())
         return concatenatedDf
 
@@ -182,35 +172,25 @@ class TestPipeLine():
 
 
 if __name__ == "__main__":
-    testObj = TestPipeLine("/Users/vignesh/Desktop/Projects/Econet/models/", 
-    "/Users/vignesh/Desktop/Projects/Econet/splitDataMod/testEncoded.csv")
+    modelPath1 = "C:/Users/ayrisbud/Downloads/aldaPipeline/final/Econet/models/"
+    testFilePath1 = "C:/Users/ayrisbud/Downloads/aldaPipeline/final/Econet/testData/testEncoded.csv"
+    
+    testObj = TestPipeLine(modelPath1, testFilePath1)
     testDf = pd.read_csv(testObj.testFilePath)
 
     testDf["Ob"] = pd.to_datetime(testDf["Ob"], infer_datetime_format=True)
-
-    testPredictions = []
 
     # load models initially
     seasons = ["fall1", "fall2", "summer1", "summer2", "spring", "winter"]
     testObj.loadModels()
 
     # predict classes
-    testPredictions = testObj.predictClasses(testDf)    
-    
-    # split it by season
-    # for i in range(0,testDf.shape[0]):
-    #     eachDataPoint = testDf.iloc[[i]]
-    #     modelName = testObj.getSeasonValue(eachDataPoint)
-    #     modelLoc = open(testObj.basePath + modelName + ".sav", 'rb')
-    #     model = pickle.load(modelLoc)
-        
-    #     eachDataPoint = eachDataPoint.drop(["Ob", "Station"], axis=1)
+    testPredictions = testObj.predictClasses(testDf)
+    print(testPredictions.shape)
+    testPredictions.columns = ["target"]
 
-    #     # Make predictions - note the use of proba
-    #     test_pred = model.predict_proba(eachDataPoint)
-    #     testPredictions.append(test_pred[:,1])
-
-    pd.DataFrame(testPredictions, columns=['target']).to_csv('/Users/vignesh/Desktop/Projects/Econet/predictions.csv', index=False)
+    # pd.DataFrame(testPredictions, columns=['target']).to_csv('C:/Users/ayrisbud/Downloads/aldaPipeline/final/Econet/predictions.csv', index=False)
+    testPredictions.to_csv('C:/Users/ayrisbud/Downloads/aldaPipeline/final/Econet/predictions.csv', index=False)
 
     """
     'measure_gust02', 'measure_gust10''measure_wd02', 'measure_wd10' these 4 features do not exist in the train data they only exist in the test data!!!

@@ -49,7 +49,7 @@ class trainPipeline():
             }
 
             randomForestModel = RandomForestClassifier(random_state=42, n_jobs=16)
-            randomForestCVModel = GridSearchCV(estimator=randomForestModel, param_grid=param_grid, cv=3, n_jobs=16, verbose=4, scoring=f1_score)
+            randomForestCVModel = GridSearchCV(estimator=randomForestModel, param_grid=param_grid, cv=3, n_jobs=16, verbose=4, scoring='f1')
             return randomForestCVModel
         
         elif modelName == "xgBoost":
@@ -58,7 +58,8 @@ class trainPipeline():
                 'max_depth' : [10, 30, 50, 75]
             }
             XGBoostModel = xgb.XGBClassifier()
-            return XGBoostModel
+            xgBoostCVModel = GridSearchCV(estimator=XGBoostModel, param_grid=param_grid, cv=3, n_jobs=16, verbose=4, scoring='f1')
+            return xgBoostCVModel
     
         elif modelName == "knnClassifier":
             knnModel = KNeighborsClassifier(n_neighbors = 5, weights = 'distance', n_jobs=16)
@@ -69,12 +70,12 @@ class trainPipeline():
         for i in range(len(self.myFileList)):
             myFileName = os.path.basename(self.myFileList[i])
             myFileName = os.path.splitext(myFileName)[0]
-            readDf = pd.read_csv(self.myFileList[i]) #, index_col=["Station"]
+            readDf = pd.read_csv(self.myFileList[i])
             readDf = readDf.drop(columns=["Station", "Ob"])
             print(readDf.shape)
             readX = readDf.drop(columns=["target"], axis = 1)
             readY = readDf["target"]
-            XTrain, XVal, yTrain, yVal = train_test_split(readX, readY, stratify = readY, test_size=0.3, random_state=42)
+            XTrain, XVal, yTrain, yVal = train_test_split(readX, readY, stratify = readY, test_size=0.2, random_state=42)
 
 
             XTrain, yTrain = self.resampleTrainingData(XTrain, yTrain)
@@ -106,23 +107,11 @@ class trainPipeline():
 
             modelList = list(modelCompDict.keys())
             bestModel = modelList[0]
-            pickle.dump(bestModel, file=open("/Users/vignesh/Desktop/Projects/Econet/models/" + myFileName + ".sav",'wb'))
+            modelPath = "C:/Users/ayrisbud/Downloads/aldaPipeline/final/Econet/models/"
+            pickle.dump(bestModel, file=open(modelPath + myFileName + ".sav",'wb'))
             
-            # myAccuracy1 = accuracy_score(yVal, myPredict1)
-            # myF11 = f1_score(yVal, myPredict1)
-
-            # if myAccuracy1 >= myAccuracy2 and myF11 >= myF12:
-            #     pickle.dump(myModel1, file=open(myFileName + ".sav",'wb'))
-            
-            # elif myAccuracy1 <= myAccuracy2 and myF11 <= myF12:
-            #     pickle.dump(myModel2, file = open(myFileName + ".sav",'wb'))
-            
-            # elif myF11 >= myF12:
-            #     pickle.dump(myModel1, file = open(myFileName + ".sav",'wb'))
-            
-            # elif myF11 <= myF12:
-            #     pickle.dump(myModel2, file = open(myFileName + ".sav",'wb'))
 
 if __name__ == "__main__":
-    myTrainObj = trainPipeline("/Users/vignesh/Desktop/Projects/Econet/splitDataMod/")
+    path1 = "C:/Users/ayrisbud/Downloads/aldaPipeline/final/Econet/trainData/"
+    myTrainObj = trainPipeline(path1)
     myTrainObj.trainPipeLine()
